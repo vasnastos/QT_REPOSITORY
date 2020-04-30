@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
     mw->setFixedSize(this->width(),this->height());
     this->setCentralWidget(mw);
     ml=new QStackedLayout;
+    mydb=new database();
     makemenu();
     tab1();
     tab2();

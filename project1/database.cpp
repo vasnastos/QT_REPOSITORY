@@ -5,11 +5,13 @@ database::database()
    if(db.isOpen()) db.close();
    db=QSqlDatabase::addDatabase("QSQLITE");
    db.setDatabaseName("Demo.db");
+   db.open();
    QSqlQuery q(db);
    if(q.exec(QString("create table if not exists lesson(")+
           QString("name varchar(20),")+
-          QString("id Integer primary key,")+
-          QString("grade double)")))
+          QString("id integer,")+
+          QString("grade double,")+
+          QString("primary key(name,id))")))
        qDebug()<<"Hello world from database"<<endl;
 }
 database::~database() {db.close();}
