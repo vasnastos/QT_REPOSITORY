@@ -131,10 +131,10 @@ bool database::delete_lesson(QString name)
      q.exec("delete from Lesson where name='"+name+"'");
      q.exec("delete from Enroll where lessonname='"+name+"'");
      q.exec("select name from Lesson where name='"+name+"'");
-     check=q.next();
-     q.exec("select lessonname from Lesson where lessonname='"+name+"'");
-     check1=q.next();
-     return (check && check1);
+     check=q.first();
+     q.exec("select lessonname from Enroll where name='"+name+"'");
+     check1=q.first();
+     return (check && (check && check1));
  }
 QVector<resultsperid> database::findstudent(int id)
 {

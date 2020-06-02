@@ -101,7 +101,7 @@ void MainWindow::makelineedit()
     l4->setText("<p style=color:blue><h3>SEARCH AREA</h3></p>");
     sid=new QLineEdit;
     sid->setPlaceholderText("ID FOR SEARCH");
-    sid->setValidator(new QIntValidator(100,19000));
+    sid->setValidator(new QIntValidator(100,22000));
     r4->addWidget(l4,0,0);
     r4->addWidget(sid,0,1);
     tab=new QTableWidget;
@@ -258,8 +258,8 @@ void MainWindow::stmenu(QAction *ac)
             return;
         }
         QVector<resultsperid> grades=mydb->findstudent(sid->text().toInt());
-        tab->clear();
         tab->setRowCount(grades.size());
+        tab->clearContents();
         for(int i=0;i<tab->rowCount();i++)
         {
             tab->setItem(i,0,new QTableWidgetItem(grades.at(i).ln));
@@ -268,7 +268,7 @@ void MainWindow::stmenu(QAction *ac)
     }
     else
     {
-        int id=QInputDialog::getInt(this,"ID BLANK","<p style=color:red>Give id you want to delete</p>",i->text().toInt(),100,19000);
+        int id=QInputDialog::getInt(this,"ID BLANK","<p style=color:red>Give id you want to delete</p>",i->text().toInt(),100,22000);
         if(mydb->delete_student(id))
         QMessageBox::information(this,"SUCCESS","<b>Student "+QString::number(id)+" has been deleted from database</b>");
         else
@@ -328,7 +328,7 @@ void MainWindow::lsmenu(QAction *a)
     else
     {
         QString les=QInputDialog::getText(this,"Give lesson name","Give lessonname you want to delete:");
-        if(mydb->delete_lesson(les))
+        if(!mydb->delete_lesson(les))
         {
              QMessageBox::information(this,"DELETE LESSON","Lesson:"+les+" has been deleted from database");
              av_les->clear();
@@ -339,7 +339,9 @@ void MainWindow::lsmenu(QAction *a)
              performance->addItems(mydb->getenrolledlessons());
         }
         else
+         {
             QMessageBox::information(this,"DELETE LESSON","Lesson:"+les+" has not been deleted from database or has not found in database");
+          }
     }
 }
 //ΑΝΑΝΕΩΣΗ ΠΙΝΑΚΑ ΜΕ ΜΑΘΗΤΕΣ ΓΙΑ ΕΝΑ ΕΠΙΛΕΓΜΕΝΟ ΜΑΘΗΜΑ
