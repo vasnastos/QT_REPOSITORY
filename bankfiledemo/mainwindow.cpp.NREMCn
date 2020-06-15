@@ -1,0 +1,49 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(500,500);
+    this->setWindowTitle("Bank DEMO");
+    mw=new QWidget;
+    mw->setFixedSize(this->width(),this->height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    tab=new QTabWidget;
+    ml->addWidget(tab);
+    tab1();
+    tab2();
+}
+
+void MainWindow::tab1()
+{
+    QWidget *tw1=new QWidget;
+    tw1->setFixedSize(this->width(),this->height());
+    tab->addTab(tw1,"GENERAL");
+    QVBoxLayout *layout=new QVBoxLayout;
+    tw1->setLayout(layout);
+    QHBoxLayout *r1=new QHBoxLayout;
+    QLabel *label=new QLabel;
+    label->setText("LOAD AND INFO");
+    label->setAlignment(Qt::AlignCenter);
+    label->setStyleSheet("backgroung-color:Lime;");
+    layout->addWidget(label);
+    layout->addLayout(r1);
+    QPushButton *loadbutton=new QPushButton;
+    loadbutton->setText("LOAD");
+    QPushButton *savebutton=new QPushButton;
+    savebutton->setText("SAVE");
+    QPushButton *quitbutton=new QPushButton;
+    quitbutton->setText("QUIT");
+    r1->addWidget(loadbutton);
+    r1->addWidget(savebutton);
+    r1->addWidget(quitbutton);
+    connect(loadbutton,SIGNAL(clicked(bool)),this,SLOT(loadslot()));
+    connect(savebutton,SIGNAL(clicked(bool)),this,SLOT(saveslot()));
+}
+
+MainWindow::~MainWindow()
+{
+}
+
