@@ -1,0 +1,36 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(600,700);
+    this->setWindowTitle("Numbers demo");
+    mw=new QWidget;
+    mw->setFixedSize(this->width(),this->height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    QPushButton *l=new QPushButton;
+    l->setText("Load");
+    QPushButton *s=new QPushButton;
+    s->setText("SAVE");
+    QPushButton *c=new QPushButton;
+    c->setText("CLEAR CONTENTS");
+    QHBoxLayout *r1=new QHBoxLayout;
+    ml->addLayout(r1);
+    r1->addWidget(l);
+    r1->addWidget(s);
+    r1->addWidget(c);
+    connect(l,SIGNAL(clicked()))
+    tab=new QTableWidget;
+    QStringList lst;
+    lst<<"SUM"<<"SQRT SUM"<<"AVERAGE"<<"MAX"<<"SHOW";
+    tab->setColumnCount(lst.size());
+    tab->setHorizontalHeaderLabels(lst);
+    ml->addWidget(tab);
+}
+
+MainWindow::~MainWindow()
+{
+}
+
