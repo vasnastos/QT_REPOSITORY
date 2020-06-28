@@ -1,0 +1,41 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(400,400);
+    this->setWindowTitle("FOOTBALL RESULTS");
+    mw=new QWidget;
+    mw->setFixedSize(this->width(),this->height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    QLabel *lb=new QLabel;
+    lb->setFixedSize(0.98 * width(),0.40 * height());
+    QPixmap pix(":/stadium.png");
+    lb->setPixmap(pix.scaled(lb->width(),lb->height()));
+    ml->addWidget(lb);
+    QHBoxLayout *r1=new QHBoxLayout;
+    ml->addLayout(r1);
+    QPushButton *l=new QPushButton;
+    l->setText("LOAD");
+    QPushButton *s=new QPushButton;
+    s->setText("SHOW FIXTURES");
+    QPushButton *c=new QPushButton;
+    c->setText("CLEAR");
+    connect(l,SIGNAL(clicked(bool)),this,SLOT(loadslot()));
+    connect(s,SIGNAL(clicked(bool)),this,SLOT(showslot()));
+    connect(c,SIGNAL(clicked(bool)),this,SLOT(clearslot()));
+    r1->addWidget(l);
+    r1->addWidget(s);
+    r1->addWidget(c);
+    chart=new QChart();
+    chart->setTitle("Fixtures");
+    series=new QPieSeries;
+    chart->addSeries(series);
+}
+
+MainWindow::~MainWindow()
+{
+}
+
