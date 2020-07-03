@@ -1,0 +1,58 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(600,700);
+    this->setWindowTitle("ASSIGNMENT 9");
+    QIcon ic(":/windowicon.png");
+    this->setWindowIcon(ic);
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    QLabel *label=new QLabel;
+    label->setFixedSize(0.96 * width(),0.4 * height());
+    QPixmap pix(":/product.png");
+    label->setPixmap(pix.scaled(label->width(),label->height()));
+    ml->addWidget(label);
+    QHBoxLayout *r1=new QHBoxLayout;
+    ml->addLayout(r1);
+    QPushButton *b=new QPushButton;
+    QIcon icb(":/loadicon.png");
+    b->setIcon(icb);
+    r1->addWidget(b);
+    connect(b,SIGNAL(clicked(bool)),this,SLOT(loadslot()));
+    QIcon icb1(":/exportimage.png");
+    QPushButton *b1=new QPushButton;
+    b1->setIcon(icb1);
+    r1->addWidget(b1);
+    connect(b1,SIGNAL(clicked(bool)),this,SLOT(exportslot()));
+    QIcon icb2("")
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::loadslot()
+{
+
+}
+void MainWindow::exportslot()
+{
+
+}
+void MainWindow::show_price()
+{
+
+}
+void MainWindow::show_quantity()
+{
+
+}
+void MainWindow::showtab()
+{
+
+}
