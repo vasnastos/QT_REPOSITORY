@@ -1,0 +1,48 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(600,600);
+    this->setWindowTitle("Lesson Handler");
+    this->setWindowIcon(QIcon(""));
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    QLabel *lb=new QLabel;
+    lb->setFixedSize(0.95 * width(),0.4 * height());
+    QPixmap p("window.png");
+    lb->setPixmap(p.scaled(lb->width(),lb->height()));
+    lb->setStyleSheet("border:2px solid; "
+                      "border-color:red;");
+    ml->addWidget(lb);
+    make_menu();
+
+    tab=new QTableWidget;
+    tab->setFixedSize(0.95 * width(),0.3 * height());
+    QStringList header;
+    header<<"ID"<<"THEORY"<<"LAB"<<"TOTAL";
+    tab->setColumnCount(header.size());
+    tab->setHorizontalHeaderLabels(header);
+    ml->addWidget(tab);
+    chart=new QChart();
+    series=new QPieSeries();
+    chart->addSeries(series);
+}
+
+void MainWindow::make_menu()
+{
+    QMenu *men=new QMenu("File");
+    men->addAction("Load",QIcon("load.png"));
+    men->addAction("Save",QIcon("save.png"));
+    men->addAction("Export",QIcon("export.png"));
+    menuBar()->addMenu(men);
+    connect(men,SIGNAL(triggered(QAction *)),this,SLOT(menuslot()));
+}
+
+MainWindow::~MainWindow()
+{
+}
+
