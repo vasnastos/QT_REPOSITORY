@@ -1,0 +1,11 @@
+Formulas used::
+
+m--feet-->meter/0.3048.
+m--inch=m/0.0254.
+m--cm=m*100.
+m--mm=m*1000.
+m--yard=m/1.0936.
+
+In the form Value you want to convert please enter a number and then select from the choosebox a type(m,mm,cm).
+After that go to the second form and from the choose box select the conversion type and the textfield will be autofilled 
+with the conversion number. 
