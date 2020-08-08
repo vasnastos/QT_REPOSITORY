@@ -1,0 +1,67 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(600,600);
+    this->setWindowTitle("PhoneBook");
+    this->setWindowIcon(QIcon(""));
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    mw->setStyleSheet("background-color:;");
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    QPushButton *but=new QPushButton("REGISTER");
+    but->setStyleSheet("padding: 3px 5px;"
+                       "font-size: 20px;"
+                       "text-align: center;"
+                       "color: #c95165;"
+                       "background-color: #0a1338;"
+                       "border: none;"
+                       "border-radius: 15px;");
+    QPushButton *but1=new QPushButton("")
+    this->make_search_form();
+    tab=new QTableWidget;
+    QStringList header;
+    header<<"Name"<<"Phone"<<"Address"<<"Code";
+    tab->setColumnCount(header.size());
+    tab->setHorizontalHeaderLabels(header);
+    for(int i=0;i<tab->columnCount();i++)
+    {
+         tab->setColumnWidth(i,tab->width()/tab->columnCount());
+    }
+    tab->setFixedSize(width()*0.95,height()*0.4);
+    tab->setStyleSheet("border:2px solid;"
+                       "border-color:red");
+    ml->addWidget(tab);
+    connect(this,SIGNAL(add()),this,SLOT(addslot()));
+ }
+
+void MainWindow::make_search_form()
+{
+    QHBoxLayout *row=new QHBoxLayout;
+    ml->addLayout(row);
+    name=new QLineEdit;
+    name->setPlaceholderText("Give name you search");
+    name->setFixedWidth(0.4*width());
+    QPushButton *b1=new QPushButton("SEARCH");
+    b1->setStyleSheet("padding: 3px 5px;"
+                      "font-size: 20px;"
+                      "text-align: center;"
+                      "color: #c95165;"
+                      "background-color: #0a1338;"
+                      "border: none;"
+                      "border-radius: 15px;");
+    QLabel *label=new QLabel;
+    label->setFixedHeight(0.05*height());
+    label->setAlignment(Qt::AlignCenter);
+    label->setText("<h3>Search Area</h3>");
+    row->addWidget(label);
+    row->addWidget(name);
+    row->addWidget(b1);
+    connect(b1,SIGNAL(clicked(bool)),this,SLOT(searchslot()));
+}
+
+MainWindow::~MainWindow() {}
+

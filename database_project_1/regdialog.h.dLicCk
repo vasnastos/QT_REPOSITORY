@@ -1,0 +1,13 @@
+#ifndef REGDIALOG_H
+#define REGDIALOG_H
+
+#include <QWidget>
+
+class regdialog
+{
+    Q_OBJECT
+public:
+    regdialog();
+};
+
+#endif // REGDIALOG_H

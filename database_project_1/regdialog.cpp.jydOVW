@@ -1,0 +1,13 @@
+#include "regdialog.h"
+
+regdialog::regdialog(database &d,QWidget *p):QDialog(p)
+{
+  this->setFixedSize(400,400);
+  lay=new QVBoxLayout;
+  this->setLayout(lay);
+  QLabel *l=new QLabel;
+  l->setAlignment(Qt::AlignCenter);
+  l->setText("<h4>NAME</h4>");
+  n=new QLineEdit;
+  n->setFixedWidth(0.3*width());
+}

@@ -1,0 +1,24 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(600,600);
+    this->setWindowTitle("PhoneBook");
+    this->setWindowIcon(QIcon(""));
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    mw->setStyleSheet("background-color:;");
+    this->setCentralWidget(mw);
+    tab=new QTableWidget;
+    QStringList header;
+    header<<"Name"<<"Phone"<<"Address"<<"Code";
+    tab->setColumnCount(header.size());
+    tab->setHorizontalHeaderLabels(header);
+    
+}
+
+MainWindow::~MainWindow()
+{
+}
+
