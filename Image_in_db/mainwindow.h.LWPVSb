@@ -1,0 +1,32 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QVBoxLayout>
+#include <QFileDialog>
+#include "database.h"
+#include <QPushButton>
+#include <QStackedLayout>
+#include <QLabel>
+#include <QLineEdit>
+
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+private:
+    QWidget *mw;
+    QStackedLayout *mainlay;
+    QLineEdit *title;
+    void win1();
+    void win2();
+    QLabel *upload;
+    QLabel *showlabel;
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+public slots:
+    void uploadslot();
+    void localimage();
+};
+#endif // MAINWINDOW_H

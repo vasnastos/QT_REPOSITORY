@@ -1,0 +1,57 @@
+#include "mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(500,500);
+    this->setWindowTitle("Image Demo");
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    this->setCentralWidget(mw);
+    mainlay=new QStackedLayout;
+   mw->setLayout(mainlay);
+}
+
+void MainWindow::win1()
+{
+    QWidget *w1=new QWidget;
+    w1->setFixedSize(width(),height());
+    mainlay->addWidget(w1);
+    QVBoxLayout *lay=new QVBoxLayout;
+    w1->setLayout(lay);
+    QLabel *lb=new QLabel;
+    lb->setFixedSize(0.4*width(),0.1*height());
+    lb->setAlignment(Qt::AlignCenter);
+    lb->setText("<h2 style=color:red>Photo's Title");
+    title=new QLineEdit;
+    title->setFixedWidth(0.4*width());
+    QHBoxLayout *row=new QHBoxLayout;
+    lay->addLayout(row);
+    row->addWidget(lb);
+    row->addWidget(title);
+    QPushButton *button=new QPushButton("Upload photo");
+    button->setStyleSheet("padding: 2px 5px;"
+                                           "font-size: 18px;"
+                                           "text-align: center;"
+                                           "color: #c95165;"
+                                           "background-color: #0a1338;"
+                                           "border: none;"
+                                           "border-radius: 10px;");
+    button->setFixedWidth(0.4*width());
+    showlabel=new QLabel;
+    showlabel->setFixedSize(0.4*width(),0.5*height());
+    QHBoxLayout *row1=new QHBoxLayout;
+    lay->addLayout(row1);
+    row1->addWidget(button);
+    row1->addWidget(showlabel);
+    connect(button,SIGNAL(clicked(bool)),this,SLOT(localimage()));
+    QPushButton *bt=new QPushButton)()
+
+}
+
+
+
+MainWindow::~MainWindow()
+{
+}
+
