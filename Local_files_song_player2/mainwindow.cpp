@@ -1,0 +1,551 @@
+#include "mainwindow.h"
+#include <QDir>
+#include <QMovie>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+
+    QDesktopWidget *widg=new QDesktopWidget;
+    this->setFixedSize(widg->geometry().width()/1.5,widg->geometry().height()/1.5);
+    this->setAutoFillBackground(true);
+    this->setWindowTitle("Music Player");
+    this->setWindowIcon(QIcon(":/music.png"));
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    this->setCentralWidget(mw);
+    ml=new QStackedLayout;
+    mw->setLayout(ml);
+    window1();
+    make_menu();
+}
+
+void MainWindow::window1()
+{
+    QWidget *w1=new QWidget;
+    w1->setFixedSize(this->width(),this->height());
+    ml->addWidget(w1);
+    lay=new QVBoxLayout;
+    w1->setLayout(lay);
+    label=new QLabel;
+    label->setFixedSize(0.95*width(),0.4*height());
+    label->setStyleSheet("border:2px solid;");
+    QMovie *movie=new QMovie;
+    QSize size(label->width(),label->height());
+    movie->setScaledSize(size);
+    movie->setFileName(":/music.gif");
+    label->setMovie(movie);
+    lay->addWidget(label);
+    tab=new QTableWidget;
+    QStringList list;
+    list<<"TITLE"<<"SIGNER"<<"ACTION";
+    tab->setColumnCount(list.size());
+    tab->setHorizontalHeaderLabels(list);
+    tab->setFixedSize(0.95*width(),0.3*height());
+    tab->setStyleSheet("font-size: 18px;"
+                       "font-weight: bold;");
+    songs<<"Primo"<<"River"<<"Και εγώ σ'αγαπώ"<<"Dusk Till Dawn"<<"Caliente";
+    singer<<"Light"<<"Eminem ft Sheeran"<<"Pantelidis"<<"Sia"<<"Mente Fuerte,Hawk,Baghdad";
+    tab->setColumnWidth(0,0.4*tab->width());
+    tab->setColumnWidth(1,tab->width()*0.4);
+    tab->setColumnWidth(2,tab->width()*0.165);
+    tab->setRowCount(singer.size());
+    QTableWidgetItem it;
+    for(int i=0;i<tab->rowCount();i++)
+    {
+        QTableWidgetItem *it=new QTableWidgetItem;
+        it->setText(songs.at(i));
+       tab->setItem(i,0,it);
+       tab->setItem(i,1,new QTableWidgetItem(singer[i]));
+       QPushButton *b1=new QPushButton("SELECT");
+       b1->setFixedWidth(0.165*tab->width());
+       b1->setStyleSheet("padding: 2px 5px;"
+                         "font-size: 19px;"
+                         "text-align: center;"
+                         "color: #b30046;"
+                         "background-color: white;"
+                         "border: 1px solid black;"
+                         "border-radius: 2px solid black;"
+                         "font-weight: bold;");
+       b1->setProperty("song",i);
+       tab->setCellWidget(i,2,b1);
+       connect(b1,SIGNAL(clicked(bool)),this,SLOT(selectedslot()));
+    }
+    tab->setStyleSheet("border:1px solid;");
+    lay->addWidget(tab);
+    dur=new QSlider(Qt::Horizontal);
+    dur->setStyleSheet("border: 1px solid #999999;"
+                       "height: 2px solid black; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */"
+                       "color:red;"
+                       "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 black, stop:1 black);"
+                       "margin: 3px;");
+    dur->setTickPosition(QSlider::TicksBothSides);
+    dur->setMinimum(0);
+    dur->setTickInterval(1);
+    dur->setFixedWidth(0.95*width());
+    counter=new QLCDNumber;
+    counter->display(0.00);
+    counter->setFixedWidth(0.07*width());
+    counter->setFixedHeight(0.05*height());
+    counter->setStyleSheet("border:0px solid;");
+    counter->setDigitCount(4);
+    lay->addWidget(dur);
+    play=new QPushButton;
+    play->setFixedWidth(0.05*width());
+    play->setFixedHeight(0.05 * height());
+    play->setIcon(QIcon(":/p.png"));   //play.png
+    play->setStyleSheet("background-color: #f1f1f1;"
+                        "border: none;"
+                        "color: white;"
+                        "padding: 35px 32px;"
+                        "text-align: center;"
+                        "text-decoration: none;"
+                        "display: inline-block;"
+                        "font-size: 26px;"
+                        "margin: 4px 2px;"
+                        "cursor: pointer;");
+    QSize sbut(play->width(),play->height());
+    play->setIconSize(sbut);
+    showvolume=new QPushButton;
+    showvolume->setFixedWidth(0.05*width());
+    showvolume->setFixedHeight(0.05*height());
+    showvolume->setIcon(QIcon(":/mt.png"));
+    showvolume->setStyleSheet("background-color:#e6e6e6;");
+    QSize butsize(showvolume->width(),showvolume->height());
+    showvolume->setIconSize(butsize);
+    showvolume->setStyleSheet("background-color: #f1f1f1;"
+                              "border: none;"
+                              "color: white;"
+                              "padding: 35px 32px;"
+                              "text-align: center;"
+                              "text-decoration: none;"
+                              "display: inline-block;"
+                              "font-size: 26px;"
+                              "margin: 4px 2px;"
+                              "cursor: pointer;");
+    player=new QMediaPlayer;
+    volume=new QSlider(Qt::Horizontal);
+    volume->setMaximum(100);
+    volume->setMinimum(0);
+    volume->setValue(0);
+    volume->setTickInterval(1);
+    volume->setFixedWidth(0.4*width());
+    volabel=new QLabel;
+    volabel->setFixedWidth(0.1*width());
+    volabel->setAlignment(Qt::AlignLeading);
+    volabel->setFixedHeight(0.05*height());
+    volabel->setStyleSheet("font-size:18px");
+    volabel->setText("<b>Volume: 0%</b> ");
+    toggle=new QPushButton;
+    toggle->setIcon(QIcon(":/ran2.png"));
+    toggle->setFixedSize(0.05*width(),0.05*this->height());
+    QSize sizetog(toggle->width(),toggle->height());
+    toggle->setIconSize(sizetog);
+    toggle->setStyleSheet("background-color: #f1f1f1;"
+                          "border: none;"
+                          "color: white;"
+                          "padding: 35px 32px;"
+                          "text-align: center;"
+                          "text-decoration: none;"
+                          "display: inline-block;"
+                          "font-size: 26px;"
+                          "margin: 4px 2px;"
+                          "cursor: pointer;");
+    toggle->setVisible(false);
+    nextsong=new QPushButton;
+    nextsong->setIcon(QIcon(":/n2.png"));
+    nextsong->setFixedSize(0.05*width(),0.05*this->height());
+    QSize sizenext(toggle->width(),toggle->height());
+    nextsong->setIconSize(sizetog);
+    nextsong->setStyleSheet("background-color: #f1f1f1;"
+                          "border: none;"
+                          "color: white;"
+                          "padding: 35px 32px;"
+                          "text-align: center;"
+                          "text-decoration: none;"
+                          "display: inline-block;"
+                          "font-size: 26px;"
+                          "margin: 4px 2px;"
+                          "cursor: pointer;");
+    nextsong->setVisible(false);
+    QHBoxLayout *row=new QHBoxLayout;
+    lay->addLayout(row);
+    row->addWidget(play);
+    row->addWidget(toggle);
+    row->addWidget(nextsong);
+    row->addWidget(showvolume);
+    row->addWidget(counter);
+    row->addWidget(volume);
+    row->addWidget(volabel);
+    connect(volume,SIGNAL(valueChanged(int)),this,SLOT(volumeslot(int)));
+    connect(showvolume,SIGNAL(clicked(bool)),this,SLOT(mutedslot()));
+    connect(dur,SIGNAL(sliderMoved(int)),this,SLOT(moveslider(int)));
+    connect(play,SIGNAL(clicked(bool)),this,SLOT(playslot()));
+    connect(player,SIGNAL(positionChanged(qint64)),this,SLOT(poschanged(qint64)));
+    connect(player,SIGNAL(durationChanged(qint64)),this,SLOT(newduration(qint64)));
+    connect(toggle,SIGNAL(clicked(bool)),this,SLOT(shuffleslot()));
+    connect(nextsong,SIGNAL(clicked(bool)),this,SLOT(nextsongslot()));
+    localfiles<<"qrc:/primo.mp3"<<"qrc:/River.mp3"<<"qrc:/love.mp3"<<"qrc:/dusk.mp3"<<"qrc:/Caliente.mp3";
+    playlist=new QMediaPlaylist;
+
+
+    for(int i=0;i<5;i++)
+    {
+        playlist->addMedia(QUrl(localfiles[i]));
+    }
+    // connect(playlist,SIGNAL(currentIndexChanged(int)),this,SLOT(songchanged(int)));
+}
+
+void MainWindow::window2()
+{
+  QWidget *w2=new QWidget;
+  w2->setFixedSize(this->width(),this->height());
+  ml->addWidget(w2);
+  //under construction
+}
+
+void MainWindow::make_menu()
+{
+    QMenu *ed=new QMenu("EDIT");
+    ed->setStyleSheet("font-weight: bold;");
+    ed->addAction(QIcon(":/laodsong.png"),"Load Song");
+    ed->addAction(QIcon(":/playlist.png"),"PlayList");
+    ed->addAction(QIcon(":/quit.png"),"Quit");
+    menuBar()->addMenu(ed);
+    //double height=0.03*this->height();
+    menuBar()->setFixedHeight(0.035*this->height());
+    connect(ed,SIGNAL(triggered(QAction *)),this,SLOT(menuslot(QAction *)));
+}
+
+MainWindow::~MainWindow()
+{
+    qDebug()<<"Destructor called!!!";
+    qDebug()<<"Thank you for using the App!!!GoodBye***";
+}
+
+void MainWindow::playslot()
+{
+    player->setVolume(lastvolume);
+    ispause=!ispause;
+   if(ispause)
+   {
+     play->setIcon(QIcon(":/p.png"));
+     play->setStyleSheet("background-color: #f1f1f1;"
+                         "border: none;"
+                         "color: white;"
+                         "padding: 35px 32px;"
+                         "text-align: center;"
+                         "text-decoration: none;"
+                         "display: inline-block;"
+                         "font-size: 26px;"
+                         "margin: 4px 2px;"
+                         "cursor: pointer;");
+     QSize sbut(play->width(),play->height());
+     play->setIconSize(sbut);
+     player->pause();
+     if(label->movie()!=nullptr)
+     {
+         label->movie()->stop();
+     }
+   }
+   if(!ispause)
+   {
+       play->setIcon(QIcon(":/ps2.png")); //pause2
+       play->setStyleSheet("background-color: #f1f1f1;"
+                           "border: none;"
+                           "color: white;"
+                           "padding: 35px 32px;"
+                           "text-align: center;"
+                           "text-decoration: none;"
+                           "display: inline-block;"
+                           "font-size: 26px;"
+                           "margin: 4px 2px;"
+                           "cursor: pointer;");
+       QSize sbut(play->width(),play->height());
+       play->setIconSize(sbut);
+       player->play();
+       if(label->movie()!=nullptr)
+       {
+           label->movie()->start();
+       }
+   }
+}
+
+void MainWindow::selectedslot()
+{
+    toggle->setVisible(false);
+    nextsong->setVisible(false);
+    enableplaylist=false;
+    QPushButton *click=(QPushButton *)sender();
+    player->setVolume(lastvolume);
+    volume->setValue(lastvolume);
+    play->setIcon(QIcon(":/ps2.png"));
+    play->setStyleSheet("background-color: #f1f1f1;"
+                        "border: none;"
+                        "color: white;"
+                        "padding: 35px 32px;"
+                        "text-align: center;"
+                        "text-decoration: none;"
+                        "display: inline-block;"
+                        "font-size: 26px;"
+                        "margin: 4px 2px;"
+                        "cursor: pointer;");
+    QSize sbut(play->width(),play->height());
+    play->setIconSize(sbut);
+    int pos=click->property("song").toInt();
+    tab->selectRow(pos);
+    if(pos==0)
+    {
+
+        player->setMedia(QUrl("qrc:/primo.mp3"));
+         QMovie *m=new QMovie;
+         QSize size(label->width(),label->height());
+         m->setScaledSize(size);
+         m->setFileName(":/light.gif");
+         label->setMovie(m);
+         label->movie()->start();
+         player->play();
+    }
+    else if(pos==1)
+    {
+
+        player->setMedia(QUrl("qrc:/River.mp3"));
+        QMovie *m=new QMovie;
+        QSize size(label->width(),label->height());
+        m->setScaledSize(size);
+        m->setFileName(":/river.gif");
+        label->setMovie(m);
+        label->movie()->start();
+        player->play();
+    }
+    else if(pos==2)
+    {
+        QMovie *m=new QMovie;
+        QSize size(label->width(),label->height());
+        m->setScaledSize(size);
+        m->setFileName(":/music.gif");
+        label->setMovie(m);
+        label->movie()->start();       
+        player->setMedia(QUrl("qrc:/love.mp3"));
+        player->play();
+    }
+    else if(pos==3)
+    {
+        QMovie *m=new QMovie;
+        QSize size(label->width(),label->height());
+        m->setScaledSize(size);
+        m->setFileName(":/music2.gif");
+        label->setMovie(m);
+        label->movie()->start();
+        player->setMedia(QUrl("qrc:/dusk.mp3"));
+        player->play();
+    }
+    else if(pos==4)
+    {
+        label->setPixmap(QPixmap(":/caliente.png").scaled(label->width(),label->height()));
+        player->setMedia(QUrl("qrc:/Caliente.mp3"));
+        player->play();
+    }
+    else
+    {
+        QMovie *m=new QMovie;
+        m->setFileName(":/musicdefault.gif");
+        QSize size(label->width(),label->height());
+        m->setScaledSize(size);
+        label->setMovie(m);
+        label->movie()->start();
+        player->setMedia(QUrl::fromLocalFile(localfiles[pos]));
+        player->play();
+    }
+}
+
+void MainWindow::volumeslot(int vol)
+{
+    player->setVolume(vol);
+    lastvolume=vol;
+    volabel->setText("<b>Volume:"+QString::number(vol)+"  %</b>");
+    if(muted)
+    {
+      showvolume->setIcon(QIcon(":/mt.png"));
+    }
+    else if(vol==0)
+    {
+        showvolume->setIcon(QIcon(":/mt.png"));
+    }
+    else if(vol>0 && vol<100/3)
+    {
+        showvolume->setIcon(QIcon(":/music1.png"));
+    }
+    else if(vol<2*(100/3))
+    {
+        showvolume->setIcon(QIcon(":/music2.png"));
+    }
+    else
+    {
+        showvolume->setIcon(QIcon(":/music3.png"));
+    }
+    QSize size(showvolume->width(),showvolume->height());
+    showvolume->setIconSize(size);
+}
+
+void MainWindow::mutedslot()
+{
+    muted=!muted;
+    if(muted)
+    {
+        showvolume->setIcon(QIcon(":/mt.png"));
+        QSize size(showvolume->width(),showvolume->height());
+        showvolume->setIconSize(size);
+    }
+    else
+    {
+       int value=volume->value();
+       if(value==0)
+       {
+           showvolume->setIcon(QIcon(":/mt.png"));
+       }
+       if(value>0 && value<100/3)
+       {
+           showvolume->setIcon(QIcon(":/music1.png"));
+       }
+       else if(value<2*(100/3))
+       {
+           showvolume->setIcon(QIcon(":/music2.png"));
+       }
+       else
+       {
+           showvolume->setIcon(QIcon(":/music3.png"));
+       }
+       QSize size(showvolume->width(),showvolume->height());
+       showvolume->setIconSize(size);
+    }
+    player->setMuted(muted);
+}
+
+void MainWindow::poschanged(qint64 position)
+{
+    double newposition=position/(1000.0*60.0);
+    int value=newposition*100;
+    if(value==0)
+    {
+        return;
+    }
+    double totalduration=player->duration()/(1000.0*60.0);
+    counter->display(newposition);
+    QString tooltip="<b>"+QString::number(newposition,'f',2)+"/"+QString::number(totalduration,'f',2)+"</b>";
+    dur->setToolTip(tooltip);
+    dur->setValue(value);
+}
+
+void MainWindow::moveslider(int position)
+{
+    double newposition=(double)position/100.0;
+    counter->display(newposition);
+    double totalduration=player->duration()/(1000.0*60.0);
+    QString tooltip="<b>"+QString::number(newposition,'f',2)+"/"+QString::number(totalduration,'f',2)+"</b>";
+    dur->setToolTip(tooltip);
+    int playerposition=(newposition*60.0)*1000.0;
+    player->setPosition(playerposition);
+}
+
+void MainWindow::newduration(qint64 dr)
+{
+    double maxval=(dr/(1000.0*60.0));
+    int duration=maxval*100;
+    dur->setMaximum(duration);
+}
+
+void MainWindow::menuslot(QAction *ac)
+{
+    if(ac->text()=="Load Song")
+    {
+        QString fn=QFileDialog::getOpenFileName(this,"Select audio",".","audio files (*.mp3 *.mp4)");
+        if(fn.size()==0)
+        {
+            QMessageBox::critical(this,"Error","No file Selected");
+            return;
+        }
+        localfiles<<fn;
+        QStringList title=fn.split("/");
+        playlist->addMedia(QMediaContent(QUrl::fromLocalFile(fn)));
+        songs<<title.at(title.size()-1);
+        singer<<"Audio via Upload";
+        tab->clearContents();
+        tab->setRowCount(singer.size());
+        QTableWidgetItem it;
+        for(int i=0;i<tab->rowCount();i++)
+        {
+            QTableWidgetItem *it=new QTableWidgetItem;
+            it->setText(songs.at(i));
+           tab->setItem(i,0,it);
+           tab->setItem(i,1,new QTableWidgetItem(singer[i]));
+           QPushButton *b1=new QPushButton("SELECT");
+           b1->setFixedWidth(0.18*tab->width());
+           b1->setStyleSheet("padding: 2px 5px;"
+                             "font-size: 19px;"
+                             "text-align: center;"
+                             "color: #b30046;"
+                             "background-color: white;"
+                             "border: 1px solid black;"
+                             "border-radius: 2px solid black;"
+                             "font-weight: bold;");
+           b1->setProperty("song",i);
+           tab->setCellWidget(i,2,b1);
+           connect(b1,SIGNAL(clicked(bool)),this,SLOT(selectedslot()));
+        }
+    }
+    else if(ac->text()=="PlayList")
+    {
+        QMovie *mv = new QMovie;
+        mv->setFileName(":/pl.gif");
+        QSize fz(label->width(), label->height());
+        label->setMovie(mv);
+        label->movie()->setScaledSize(fz);
+        label->movie()->start();
+        toggle->setVisible(true);
+        nextsong->setVisible(true);
+       player->setMedia(playlist);
+       player->play();
+
+       player->setVolume(lastvolume);
+       play->setIcon(QIcon(":/ps2.png"));
+       play->setStyleSheet("background-color: #f1f1f1;"
+                           "border: none;"
+                           "color: white;"
+                           "padding: 35px 32px;"
+                           "text-align: center;"
+                           "text-decoration: none;"
+                           "display: inline-block;"
+                           "font-size: 26px;"
+                           "margin: 4px 2px;"
+                           "cursor: pointer;");
+    }
+    else
+    {
+        qApp->exit(EXIT_SUCCESS);
+    }
+}
+
+
+void MainWindow::shuffleslot()
+{
+    playlist->shuffle();
+}
+
+void MainWindow::nextsongslot()
+{
+    if(playlist->currentIndex()==localfiles.size()-1)
+    {
+        playlist->shuffle();
+        playlist->setCurrentIndex(0);
+    }
+    playlist->next();
+}
+
+/*void MainWindow::songchanged(int index)
+{
+    tab->selectRow(index);
+    tab->item(index,0)->setBackground(Qt::red);
+    tab->item(index,1)->setBackground(Qt::red);
+    tab->cellWidget(index,2)->setStyleSheet("backgroud-color:red;");
+}*/
