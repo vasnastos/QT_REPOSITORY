@@ -1,0 +1,77 @@
+#include "mainwindow.h"
+#include <QMovie>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    mydb=new database;
+    this->setFixedSize(400,400);
+    this->setWindowTitle("company Database");
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    QLabel *lb=new QLabel;
+    lb->setFixedSize(0.98*width(),0.3*height());
+    lb->setStyleSheet("border:2px solid;");
+    QMovie *m=new QMovie;
+    m->setFileName(":/");
+    QSize s(lb->width(),lb->height());
+    m->setScaledSize(s);
+    lb->setMovie(m);
+    lb->movie()->start();
+    ml->addWidget(lb);
+    n=new QLineEdit;
+    id=new QLineEdit;
+    did=new QLineEdit;
+    sl=new QLineEdit;
+    n->setStyleSheet("border:2px solid;"
+                     "color:#360315;");
+    id->setStyleSheet("border:2px solid;"
+                      "color:#360315;");
+    did->setStyleSheet("border:2px solid;"
+                       "color:#360315;");
+    sl->setStyleSheet("border:2px solid;"
+                      "color:#360315;");
+    QHBoxLayout *row=new QHBoxLayout;
+    ml->addLayout(row);
+    row->addWidget(n);
+    row->addWidget(id);
+    row->addWidget(did);
+    row->addWidget(sl);
+    QPushButton *b=new QPushButton("ADD");
+    b->setFixedWidth(0.2*width());
+    b->setStyleSheet("color:#910939;"
+                     "background-color:#added5;"
+                     "border:2px solid;");
+    row->addWidget(b);
+    connect(b,SIGNAL(clicked(bool)),this,SLOT(addslot()));
+    QHBoxLayout *row1=new QHBoxLayout;
+    ml->addLayout(row1);
+    depid=new QLineEdit;
+    dname=new QLineEdit;
+    depid->setStyleSheet("border:2px solid;"
+                         "color:#360315;");
+    dname->setStyleSheet("border:2px solid;"
+                         "color:#360315;");
+    depid->setFixedWidth(0.3*width());
+    dname->setFixedWidth(0.3*width());
+    QPushButton *b1=new QPushButton("ADD");
+    b1->setFixedWidth(0.2*width());
+    b1->setStyleSheet("color:#910939;"
+                     "background-color:#added5;"
+                     "border:2px solid;");
+   row1->addWidget(depid);
+   row1->addWidget(dname);
+   row1->addWidget(b1);
+   connect(b1,SIGNAL(clicked(bool)),this,SLOT(depment()));
+   tab=new QSqlTableModel;
+   tab->setTable("Department");
+   
+}
+
+MainWindow::~MainWindow()
+{
+}
+

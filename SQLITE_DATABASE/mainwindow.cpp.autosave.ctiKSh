@@ -1,0 +1,29 @@
+#include "mainwindow.h"
+#include <QMovie>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(400,400);
+    this->setWindowTitle("company Database");
+    mw=new QWidget;
+    mw->setFixedSize(width(),height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    QLabel *lb=new QLabel;
+    lb->setFixedSize(0.98*width(),0.3*height());
+    lb->setStyleSheet("border:2px solid;");
+    QMovie *m=new QMovie;
+    m->setFileName(":/");
+    QSize s(lb->width(),lb->height());
+    m->setScaledSize(s);
+    lb->setMovie(m);
+    lb->movie()->start();
+    
+}
+
+MainWindow::~MainWindow()
+{
+}
+

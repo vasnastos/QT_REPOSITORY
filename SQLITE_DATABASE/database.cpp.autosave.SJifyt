@@ -1,0 +1,19 @@
+#include "database.h"
+
+database::database()
+{
+  db=QSqlDatabase::addDatabase("QSQLITE");
+  db.setDatabaseName("company.db");
+  db.open();
+  QSqlQuery q(db);
+  QString sql="create table if not exists Department(depid integer,depname varchar(50),primary key(depid))";
+  q.exec(sql);
+  sql="create table if not exists Employee(empid integer,empname varchar(60),depid integer,salary double,primary key(empid,depid))";
+  q.exec(sql);
+}
+database::~database() {db.close();}
+
+void database::insert_employee(int empid, QString name, int depid, double salary)
+{
+    QString sql="insert into Employee(empid,empname,depid,salary) values()"
+}
