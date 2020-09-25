@@ -1,0 +1,796 @@
+#include "mainwindow.h"
+#include <QVariant>
+#include <cmath>
+#include <QDebug>
+
+double expression(); //in order to use in primary function
+
+const QChar number = '8';
+
+
+const QString currentDateTime() {
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+
+    return buf;
+}
+
+class calculateexpr
+{
+    QString expr;
+    int pos;
+public:
+    calculateexpr():expr(""),pos(-1) {}
+    void setexpr(QString k)
+    {
+        expr=k;
+    }
+    void refresh()
+    {
+        pos=-1;
+    }
+    int get_pos() {return pos;}
+    int get_expr_length() {return expr.length();}
+    void reduce() {pos--;}
+    QChar get_token()
+    {
+        if(pos==expr.length()-1)
+        {
+            return '!';
+        }
+        pos++;
+        return expr[pos];
+    }
+    QChar retrieve_token()
+    {
+        return expr[pos];
+    }
+    QChar get_kind(QChar c)
+    {
+       if((c>='0' && c<='9') || c=='.')
+       {
+         return number;
+       }
+       return '!';
+    }
+};
+
+calculateexpr exptk;
+
+double primary()
+{
+    QChar tok=exptk.get_token();
+    if(tok=='(')
+    {
+        double d = expression();
+        return d;
+    }
+    else if(tok=='-') //primary-->-primary
+        return - primary();
+    else if(exptk.get_kind(tok)==number)//primary-->(0,1,2,....,9)*
+    {
+        QString stnum="";
+        stnum+=tok;
+        tok=exptk.get_token();
+        while(exptk.get_kind(tok)==number)
+        {
+            stnum+=tok;
+            tok=exptk.get_token();
+        }
+        exptk.reduce();
+        return stnum.toDouble();
+    }
+    else
+    {
+        QString tokenerror="";
+        tokenerror+=exptk.retrieve_token();
+        QMessageBox::critical(nullptr,"ERROR","<h3>Error token:"+tokenerror+"</h3>");
+        exptk.get_token();
+        return 0.00001;
+     }
+}
+double term()
+{
+    double left = primary();
+    while(true) {
+     QChar tok=exptk.get_token();
+        if(tok=='^')
+        {
+            int i=1;
+            int k=int(primary());
+            for(int j=0;j<k;j++)
+            {
+                i*=left;
+            }
+            return i;
+        }
+        else if(tok=='*')  //term-->term*primary
+            left *= primary();
+        else if(tok=='/')   //term-->term/primary
+        {
+            double d = primary();
+            if (d == 0)
+            {
+                qDebug()<<"Divided with zero!!!"<<endl;
+            }
+            left /= d;
+        }
+        else if(tok=='%')
+        {
+            int k=(int)primary();
+            int midres=(int)left%k;
+            left=midres;
+        }
+        else
+        {
+            exptk.reduce();
+            return left;
+        }
+    }
+ }
+
+
+double expression()
+{
+    double left = term();
+    while(true) {
+      QChar tok=exptk.get_token();
+        if(tok=='+')  //expression-->expresion+term
+            left += term();
+        else if(tok=='-')  //expression-->expression-term
+            left -= term();
+        else   //expression-->term
+           return left;
+        }
+}
+
+bool check_validance()
+{
+   return exptk.get_pos()==exptk.get_expr_length()-1;
+}
+
+QString calculate(QString praksis)
+{
+  exptk.setexpr(praksis);
+  exptk.refresh();
+  double result=expression();
+  if(!check_validance() || exptk.retrieve_token()=='.')
+  {
+      return "ERROR";
+  }
+  if(exptk.retrieve_token()=='+' || exptk.retrieve_token()=='-' || exptk.retrieve_token()=='*' || exptk.retrieve_token()=='/' || exptk.retrieve_token()=='~'){
+     return "ERROR";
+  }
+  return QString::number(result,'f',2);
+}
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(500,600);
+    this->setWindowTitle("Calculator");
+    this->setWindowIcon(QIcon(":/central.png"));
+    mw=new QWidget;
+    mw->setFixedSize(this->width(),this->height());
+    mw->setStyleSheet("background-color:white");
+    this->setCentralWidget(mw);
+    lay=new QStackedLayout;
+    mw->setLayout(lay);
+    window1();
+    window2();
+    make_menu();
+    connect(this,SIGNAL(calculation()),this,SLOT(newcalc()));
+}
+
+void MainWindow::make_menu()
+{
+  QMenu *men=new QMenu("EDIT");
+  men->addAction(QIcon(":/history.jpg"),"HISTORY");
+  men->addAction(QIcon(":/quit.png"),"QUIT");
+  menuBar()->addMenu(men);
+  menuBar()->setFixedHeight(0.049*this->height());
+  connect(men,SIGNAL(triggered(QAction *)),this,SLOT(menuslot(QAction *)));
+}
+
+void MainWindow::window1()
+{
+    QWidget *w1=new QWidget;
+    w1->setFixedSize(this->width(),this->height());
+    lay->addWidget(w1);
+    ml=new QVBoxLayout;
+    w1->setLayout(ml);
+    ml->setSpacing(2);
+    res=new QLabel;
+    res->setFixedSize(0.965*this->width(),0.1*this->height());
+    res->setAlignment(Qt::AlignCenter);
+    res->setStyleSheet("color:#6600ff;"
+                         "font-size:30px;"
+                         "border:1.5px solid #990033;"
+                       "font-weight:Bold");
+    ml->addWidget(res);
+    panel1();
+    panel2();
+    panel3();
+    panel4();
+    panel5();
+}
+
+void MainWindow::newcalc()
+{
+    tab->setRowCount(prks.size());
+    for(int i=0;i<tab->rowCount();i++)
+    {
+        QTableWidgetItem *it=new QTableWidgetItem;
+        it->setText(prks.at(i).time);
+        it->setTextAlignment(Qt::AlignCenter);
+        QColor c;
+        c.setNamedColor("#911444");
+        it->setForeground(c);
+        tab->setItem(i,0,it);
+
+        QTableWidgetItem *it1=new QTableWidgetItem;
+        it1->setText(prks.at(i).prg);
+        it1->setTextAlignment(Qt::AlignCenter);
+        it1->setForeground(c);
+        tab->setItem(i,1,it1);
+    }
+}
+
+void MainWindow::window2()
+{
+    QWidget *w2=new QWidget;
+    w2->setFixedSize(width(),height());
+    lay->addWidget(w2);
+    QVBoxLayout *lw=new QVBoxLayout;
+    w2->setLayout(lw);
+    lw->setSpacing(2);
+    tab=new QTableWidget;
+    tab->setFixedSize(0.96*w2->width(),0.6*w2->height());
+    tab->setStyleSheet("font-size:21px;"
+                       "color:#06041f;"
+                       "border:2px solid;");
+    QStringList list;
+    list<<"DATE-TIME"<<"EXPRESSION";
+    tab->setColumnCount(list.size());
+    tab->setHorizontalHeaderLabels(list);
+    tab->setColumnWidth(0,0.97*tab->width()/2);
+    tab->setColumnWidth(1,0.97*tab->width()/2);
+    lw->addWidget(tab);
+    emit newcalc();
+    QPushButton *b=new QPushButton("CALCULATOR");
+    b->setFixedWidth(0.4*w2->width());
+    b->setStyleSheet("background-color:#690331;"
+                     "color:#f0edee;"
+                     "font-size:21px;");
+    QPushButton *b1=new QPushButton("CSV");
+    b1->setFixedWidth(0.2*w2->width());
+    b1->setStyleSheet("background-color:#690331;"
+                     "color:#f0edee;"
+                     "font-size:21px;");
+    QHBoxLayout *row=new QHBoxLayout;
+    lw->addLayout(row);
+    row->addWidget(b);
+    row->addWidget(b1);
+    connect(b,SIGNAL(clicked(bool)),this,SLOT(calcslot()));
+    connect(b1,SIGNAL(clicked(bool)),this,SLOT(exportcsv()));
+}
+
+void MainWindow::menuslot(QAction *a)
+{
+    if(a->text()=="HISTORY")
+    {
+        lay->setCurrentIndex(1);
+        emit newcalc();
+    }
+    else
+    {
+        qApp->exit(EXIT_SUCCESS);
+    }
+}
+
+
+void MainWindow::calcslot()
+{
+    lay->setCurrentIndex(0);
+}
+
+void MainWindow::exportcsv()
+{
+    if(prks.size()==0)
+    {
+        QMessageBox::critical(this,"ERROR","No calculate has been made");
+        return;
+    }
+    QString fn=QFileDialog::getSaveFileName(this,"Save calculator Csv",".","CSV FILES (*.csv)");
+    if(fn.size()==0)
+    {
+        QMessageBox::critical(this,"ERROR","No file selected");
+        return;
+    }
+    QFile fp(fn);
+    fp.open(QIODevice::WriteOnly);
+    QTextStream st(&fp);
+    st<<"File Created At: DATE:"<<__DATE__<<"     TIME:"<<__TIME__<<endl;
+    st<<"Calculator Expressions made by the app use"<<endl<<endl;
+    for(auto &x:prks)
+    {
+        st<<x.time<<"~~~~~~~~~~"<<x.prg<<endl;
+    }
+    fp.close();
+}
+
+MainWindow::~MainWindow() {}
+
+void MainWindow::panel1()
+{
+    QHBoxLayout *row=new QHBoxLayout;
+    ml->addLayout(row);
+    QPushButton *clear=new QPushButton("C");
+    clear->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    clear->setStyleSheet("background-color:#990033;"
+                         "color:white;"
+                         "font-size:30px;"
+                         "font-weight:Bold");
+
+    QPushButton *b=new QPushButton;
+    b->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    QSize sz(b->width()*0.55,b->height());
+    b->setIconSize(sz);
+    b->setIcon(QIcon(":/back.png"));
+    b->setStyleSheet("background-color:#990033;"
+                     "color:white;"
+                     "font-size:30px;"
+                     "font-weight:Bold");
+    QPushButton *b1=new QPushButton;
+    b1->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b1->setText("(");
+    b1->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:Bold");
+
+    QPushButton *b2=new QPushButton;
+    b2->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b2->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:Bold");
+    b2->setText(")");
+    QPushButton *b3=new QPushButton;
+    b3->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b3->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:Bold");
+    b3->setText("X");
+    row->addWidget(b1);
+    row->addWidget(b2);
+    row->addWidget(clear);
+    row->addWidget(b);
+    row->addWidget(b3);
+    connect(clear,SIGNAL(clicked(bool)),this,SLOT(clearslot()));
+    connect(b,SIGNAL(clicked(bool)),this,SLOT(backspaceslot()));
+    connect(b1,SIGNAL(clicked(bool)),this,SLOT(parenthesis1()));
+    connect(b2,SIGNAL(clicked(bool)),this,SLOT(parenthesis2()));
+    connect(b3,SIGNAL(clicked(bool)),this,SLOT(xslot()));
+
+}
+
+void MainWindow::clearslot()
+{
+    res->setText("");
+}
+
+void MainWindow::dynslot()
+{
+    QString text=res->text();
+    text+="^";
+    res->setText(text);
+}
+
+void MainWindow::backspaceslot()
+{
+    QString newstr="";
+    QString text=res->text();
+    for(int i=0;i<text.length()-1;i++)
+    {
+       newstr+=text.at(i);
+    }
+    res->setText(newstr);
+}
+
+void MainWindow::sqrtslot()
+{
+    QString k=res->text();
+    if(k.length()==0)
+    {
+        res->setText("0");
+        return;
+    }
+    QString resl=calculate(k);
+    if(resl=="ERROR" || k.isEmpty())
+    {
+        res->setText("ERROR");
+        return;
+    }
+    double d=resl.toDouble();
+    res->setText(QString::number(sqrt(d),'f',4));
+}
+
+void MainWindow::parenthesis1()
+{
+    QString text=res->text();
+    text+="(";
+    res->setText(text);
+}
+
+void MainWindow::parenthesis2()
+{
+    QString text=res->text();
+    text+=")";
+    res->setText(text);
+}
+
+void MainWindow::xslot()
+{
+    QString text=res->text();
+    text+="*";
+    res->setText(text);
+}
+
+void MainWindow::panel2()
+{
+   QHBoxLayout *row=new QHBoxLayout;
+   ml->addLayout(row);
+   QPushButton *nb=new QPushButton("^");
+   nb->setFixedSize((0.95*this->width()/5),0.165*this->height());
+   nb->setStyleSheet("background-color:#990033;"
+                     "color:white;"
+                     "font-size:30px;"
+                     "font-weight:Bold");
+   row->addWidget(nb);
+   for(int i=7;i<=9;i++)
+   {
+       QPushButton *b=new QPushButton(QString::number(i));
+       b->setFixedSize((0.95*this->width()/5),0.165*this->height());
+       b->setStyleSheet("background-color:#990033;"
+                        "color:white;"
+                        "font-size:30px;"
+                        "font-weight:bold;");
+       b->setProperty("number",i);
+       row->addWidget(b);
+       connect(b,SIGNAL(clicked(bool)),this,SLOT(panel2slot()));
+   }
+   QPushButton *b1=new QPushButton("/");
+   b1->setFixedSize((0.95*this->width()/5),0.165*this->height());
+   b1->setStyleSheet("background-color:#990033;"
+                    "color:white;"
+                     "font-size:30px;"
+                     "font-weight:bold;");
+   row->addWidget(b1);
+   connect(b1,SIGNAL(clicked(bool)),this,SLOT(divslot()));
+   connect(nb,SIGNAL(clicked(bool)),this,SLOT(dynslot()));
+}
+
+void MainWindow::panel2slot()
+{
+    QPushButton *b=(QPushButton *)sender();
+    int i=b->property("number").toInt();
+    QString text=res->text();
+    text+=QString::number(i);
+    res->setText(text);
+}
+
+void MainWindow::divslot()
+{
+    QString text=res->text();
+    text+="/";
+    res->setText(text);
+}
+
+void MainWindow::panel3()
+{
+    QHBoxLayout *row=new QHBoxLayout;
+    ml->addLayout(row);
+    QPushButton *nb=new QPushButton("%");
+    nb->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    nb->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:Bold");
+    row->addWidget(nb);
+    for(int i=4;i<=6;i++)
+    {
+        QPushButton *b=new QPushButton(QString::number(i));
+        b->setFixedSize((0.95*this->width()/5),0.165*this->height());
+        b->setStyleSheet("background-color:#990033;"
+                         "color:white;"
+                         "font-size:30px;"
+                         "font-weight:bold;");
+        b->setProperty("number",i);
+        row->addWidget(b);
+        connect(b,SIGNAL(clicked(bool)),this,SLOT(panel2slot()));
+    }
+    QPushButton *b1=new QPushButton("+");
+    b1->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b1->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:bold;");
+    row->addWidget(b1);
+    connect(b1,SIGNAL(clicked(bool)),this,SLOT(plusslot()));
+    connect(nb,SIGNAL(clicked(bool)),this,SLOT(modslot()));
+}
+
+void MainWindow::modslot()
+{
+    QString text=res->text();
+    text+="%";
+    res->setText(text);
+}
+
+void MainWindow::plusslot()
+{
+    QString text=res->text();
+    text+="+";
+    res->setText(text);
+}
+
+void MainWindow::panel4()
+{
+    QHBoxLayout *row=new QHBoxLayout;
+    ml->addLayout(row);
+    QPushButton *nb=new QPushButton;
+    nb->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    QSize sz(nb->width(),nb->height());
+    nb->setIconSize(sz);
+    nb->setIcon(QIcon(":/sqrt.png"));
+    nb->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:bold;");
+    row->addWidget(nb);
+    for(int i=1;i<=3;i++)
+    {
+        QPushButton *b=new QPushButton(QString::number(i));
+        b->setFixedSize((0.95*this->width()/5),0.165*this->height());
+        b->setStyleSheet("background-color:#990033;"
+                         "color:white;"
+                         "font-size:30px;"
+                         "font-weight:bold;");
+        b->setProperty("number",i);
+        row->addWidget(b);
+        connect(b,SIGNAL(clicked(bool)),this,SLOT(panel2slot()));
+    }
+    QPushButton *b3=new QPushButton("-");
+    b3->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b3->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:bold;");
+    row->addWidget(b3);
+    connect(nb,SIGNAL(clicked(bool)),this,SLOT(sqrtslot()));
+    connect(b3,SIGNAL(clicked(bool)),this,SLOT(minusslot()));
+   }
+
+void MainWindow::minusslot()
+{
+    QString text=res->text();
+    text+="-";
+    res->setText(text);
+}
+
+void MainWindow::panel5()
+{
+    QHBoxLayout *row=new QHBoxLayout;
+    ml->addLayout(row);
+    QPushButton *nb=new QPushButton("Π");
+    nb->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:bold;");
+    nb->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    QPushButton *b=new QPushButton("0");
+    b->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b->setStyleSheet("background-color:#990033;"
+                     "color:white;"
+                     "font-size:30px;"
+                     "font-weight:bold;");
+    b->setProperty("number",0);
+    QPushButton *b1=new QPushButton(".");
+    b1->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b1->setStyleSheet("background-color:#990033;"
+                      "color:white;"
+                      "font-size:30px;"
+                      "font-weight:bold;");
+    QPushButton *b2=new QPushButton("=");
+    b2->setFixedSize((0.95*this->width()/5),0.165*this->height());
+    b2->setStyleSheet("background-color:#b30000;"
+                     "color:white;"
+                      "font-size:32px;"
+                      "font-weight:bold;");
+    QPushButton *b3=new QPushButton;
+        b3->setFixedSize((0.95*this->width()/5),0.165*this->height());
+        b3->setStyleSheet("background-color:#990033;"
+                          "color:white;"
+                          "font-size:30px;"
+                          "font-weight:Bold");
+        b3->setText("e");
+        row->addWidget(nb);
+        row->addWidget(b3);
+    row->addWidget(b);
+    row->addWidget(b1);
+    row->addWidget(b2);
+    connect(nb,SIGNAL(clicked(bool)),this,SLOT(pislot()));
+    connect(b,SIGNAL(clicked(bool)),this,SLOT(panel2slot()));
+    connect(b1,SIGNAL(clicked(bool)),this,SLOT(dotslot()));
+    connect(b2,SIGNAL(clicked(bool)),this,SLOT(resultslot()));
+    connect(b3,SIGNAL(clicked(bool)),this,SLOT(eslot()));
+}
+
+void MainWindow::dotslot()
+{
+    QString text=res->text();
+    text+=".";
+    res->setText(text);
+}
+
+void MainWindow::eslot()
+{
+    QString text=res->text();
+    text+="2.71";
+    res->setText(text);
+}
+
+void MainWindow::pislot()
+{
+    QString text=res->text();
+    text+="3.1415";
+    res->setText(text);
+}
+
+void MainWindow::resultslot()
+{
+   QString calculationstring=res->text();
+   calreg cl;
+   QString datetime=currentDateTime();
+   cl.time=datetime;
+   cl.prg=calculationstring;
+   prks<<cl;
+   if(calculationstring.isEmpty())
+   {
+       res->setText("");
+       return;
+   }
+   QString result=calculate(calculationstring);
+   int pos=-1;
+   for(int i=0;i<result.length();i++)
+   {
+       if(result.at(i)=='.')
+       {
+           pos=i;
+       }
+   }
+   if(pos!=-1)
+   {
+       int counter=0;
+       int digits=0;
+       for(int i=pos+1;i<result.length();i++)
+       {
+           if(result.at(i)=='0')
+           {
+               counter++;
+           }
+           digits++;
+       }
+       if(counter==digits)
+       {
+           QString temporary=result;
+           result="";
+           for(int i=0;i<pos;i++)
+           {
+             result+=temporary.at(i);
+           }
+       }
+   }
+   res->setText(result);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *k)
+{
+    if(res->text()=="ERROR")
+    {
+        res->setText("");
+    }
+    int num;
+       if(k->key()==Qt::Key_0){
+           num=0;
+        }
+       else if(k->key()==Qt::Key_1){
+           num=1;
+        }
+       else if(k->key()==Qt::Key_2){
+           num=2;
+        }
+       else if(k->key()==Qt::Key_3){
+           num=3;
+        }
+       else if(k->key()==Qt::Key_4){
+           num=4;
+        }
+       else if(k->key()==Qt::Key_5){
+           num=5;
+        }
+       else if(k->key()==Qt::Key_6){
+           num=6;
+        }
+       else if(k->key()==Qt::Key_7){
+           num=7;
+        }
+       else if(k->key()==Qt::Key_8){
+           num=8;
+        }
+       else if(k->key()==Qt::Key_9){
+           num=9;
+        }
+       else if(k->text()=="+"){
+           res->setText(res->text() + "+");
+           return;
+       }
+       else if(k->text()=="-"){
+           res->setText(res->text() + "-");
+           return;
+       }
+       else if(k->key()==Qt::Key_Comma)
+       {
+           res->setText(res->text()+".");
+           return;
+       }
+       else if(k->key()==Qt::Key_ParenRight)
+       {
+           res->setText(res->text()+"(");
+          return;
+       }
+       else if(k->key()==Qt::Key_ParenLeft)
+       {
+           res->setText(res->text()+")");
+           return;
+       }
+       else if(k->key()==Qt::Key_E)
+       {
+           res->setText(res->text()+"2.71");
+           return;
+       }
+       else if(k->text()=="/"){
+           res->setText(res->text() + "/");
+           return;
+       }
+       else if(k->text()=="*"){
+           res->setText(res->text() + "*");
+           return;
+       }
+       else if(k->key()==Qt::Key_Backspace){
+           QString text = res->text();
+           QString newtext = "";
+           for(int i=0; i< text.length()-1; i++){
+               newtext += text.at(i);
+           }
+           res->setText(newtext);
+           return;
+       }
+       else if(k->key()==Qt::Key_Enter || k->key()==Qt::Key_Return){
+           resultslot();
+           return;
+       }
+       else {
+           return;
+       }
+
+       QString allo = res->text();
+       allo+=QString::number(num);
+       res->setText(allo);
+}
+
