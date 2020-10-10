@@ -1,0 +1,131 @@
+#include "mainwindow.h"
+#include <random>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+{
+    this->setFixedSize(600,400);
+    this->setWindowTitle("Random Ip Genarator");
+    mw=new QWidget;
+    mw->setFixedSize(this->width(),this->height());
+    this->setCentralWidget(mw);
+    ml=new QVBoxLayout;
+    mw->setLayout(ml);
+    ml->setSpacing(2);
+    QLabel *gif=new QLabel;
+    gif->setFixedSize(0.98*width(),0.3*height());
+    QMovie *movie=new QMovie;
+    movie->setFileName(":/ip.gif");
+    QSize sz(gif->width(),gif->height());
+    movie->setScaledSize(sz);
+    gif->setMovie(movie);
+    ml->addWidget(gif);
+    gif->movie()->start();
+    num=new QLineEdit;
+    num->setFixedWidth(0.2*this->width());
+    num->setStyleSheet("color:#660033;"
+                       "background-color:#f2f2f2;"
+                       "border:2px solid;");
+    num->setText("0");
+    QPushButton *b=new QPushButton;
+    b->setStyleSheet("background-color:#f2f2f2;"
+                     "color:#660033;"
+                     "padding:2px 5px");
+    b->setFixedWidth(0.2*this->width());
+    b->setText("GENARATE");
+    QHBoxLayout *bx=new QHBoxLayout;
+    ml->addLayout(bx);
+    bx->addWidget(num);
+    bx->addWidget(b);
+    connect(b,SIGNAL(clicked(bool)),this,SLOT(genarate()));
+    showlb=new QLabel;
+    showlb->setFixedSize(0.98*width(),0.22*height());
+    showlb->setStyleSheet("color:#660033;"
+                          "border:2px solid;");
+    ml->addWidget(showlb);
+    chart=new QChart;
+    chart->setTitle("Classes Info");
+    series=new QPieSeries;
+    chart->addSeries(series);
+    view=new QChartView(chart);
+    view->setStyleSheet("border:2px solid;");
+    view->setFixedSize(0.98*this->width(),0.23*this->height());
+    ml->addWidget(view);
+    make_menu();
+}
+
+void MainWindow::make_menu()
+{
+    QMenu *menu=new QMenu("EDIT");
+    menu->addAction(QIcon(":/clear.png"),"CLEAR");
+    menu->addAction(QIcon(":/csv.png"),"EXPORT CSV");
+    menu->addAction(QIcon(":/export.png"),"EXPORT");
+    menu->addAction(QIcon(":/quit.png"),"QUIT");
+    menuBar()->addMenu(menu);
+    connect(menu,SIGNAL(triggered(QAction *)),this,SLOT(menuslot(QAction *)));
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::menuslot(QAction *a)
+{
+   if(a->text()=="CLEAR")
+   {
+     showlb->clear();
+     ips.clear();
+   }
+   else if(a->text()=="EXPORT")
+   {
+       QString fn=QFileDialog::getSaveFileName(this,"Save Image",".","(images) (*.png *.jpg)");
+       view->grab().save(fn);
+   }
+   else
+   {
+       QString fn=QFileDialog::getSaveFileName(this,"Save ips",".","(csv files) (*.csv)");
+       if(fn.size()==0)
+       {
+           QMessageBox::critical(this,"Error","No input file detected");
+           return;
+       }
+       QFile fp(fn);
+       fp.open(QIODevice::WriteOnly);
+       QTextStream st(&fp);
+       for(auto &x:ips)
+       {
+           st<<x<<endl;
+       }
+       fp.close();
+   }
+}
+
+int seed()
+{
+    QString time=__TIME__;
+    QStringList list=time.split(":");
+    return list[list.size()-1].toInt();
+}
+
+void MainWindow::genarate()
+{
+    ips.clear();
+   std::mt19937 mt(seed());
+   int size=num->text().toInt();
+   std::uniform_int_distribution <int> numbers(0,255);
+   for(int i=0;i<size;i++)
+   {
+      QString x="";
+      for(int j=0;j<3;j++)
+      x+=QString::number(numbers(mt))+".";
+      x+=QString::number(numbers(mt));
+      ips.append(x);
+   }
+   QString message="<h3 text-align:center;>Randoms Ip</h3><ul>";
+   for(auto &x:ips)
+   {
+      message+="<li>"+x+"</li>";
+   }
+   message+="</ul>";
+   showlb->setText(message);
+}
