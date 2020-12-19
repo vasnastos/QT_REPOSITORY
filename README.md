@@ -10,4 +10,10 @@
 <li>Graph coloring</li>
   <i>Upcoming Graph coloring Demo Released App</li>
 </ul>
+  <br><br>
+  <h1>Releases</h1>
+  <ul>
+    <li>Song Player:<a href="">Song Player</a></li>
+    <li>Calculator CFG:<a href="">CFG</li>
+    </ul>
 </html>
