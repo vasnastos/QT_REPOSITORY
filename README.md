@@ -7,7 +7,7 @@
 <li>File Handling Demos</li>
 <li>SQLITE database projects</li>
 <li>Calculator Demo</li>
-<i>Upcoming Graph coloring Demo Released App</li>
 <li>Graph coloring</li>
+  <i>Upcoming Graph coloring Demo Released App</li>
 </ul>
 </html>
