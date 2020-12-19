@@ -13,7 +13,7 @@
   <br><br>
   <h1>Releases</h1>
   <ul>
-    <li>Song Player:<a href="">Song Player</a></li>
-    <li>Calculator CFG:<a href="">CFG</li>
+    <li>Song Player:<a href="https://github.com/vasnastos/PROGRAMMING-IN-QT/releases/tag/untagged-b7a36a3959613ac555e6">Song Player</a></li>
+    <li>Calculator CFG:<a href="https://github.com/vasnastos/PROGRAMMING-IN-QT/releases/tag/Calculattor">CFG</li>
     </ul>
 </html>
