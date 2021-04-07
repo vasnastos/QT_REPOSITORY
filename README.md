@@ -8,7 +8,6 @@
 <li>SQLITE database projects</li>
 <li>Calculator Demo</li>
 <li>Graph coloring</li>
-  <i>Upcoming Graph coloring Demo Released App</li>
 </ul>
   <br><br>
   <h1>Releases</h1>
